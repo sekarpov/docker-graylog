@@ -1,0 +1,3 @@
+certbot_email: sergo-8ck@yandex.ru
+certbot_hosts:
+    - graylog.auto-iz-usa-dev.ru

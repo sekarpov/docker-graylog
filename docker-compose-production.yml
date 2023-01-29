@@ -1,0 +1,74 @@
+version: '3.8'
+services:
+    graylog:
+        image: graylog/graylog:5.0
+        container_name: graylog
+        volumes:
+            - graylog_data:/usr/share/graylog/data
+            - ./docker/plugin/:/opt/graylog/plugin/
+        environment:
+            # CHANGE ME (must be at least 16 characters)!
+            GRAYLOG_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
+            # echo -n admin | shasum -a 256, default password is admin
+            GRAYLOG_ROOT_PASSWORD_SHA2: ${APP_ENCRYPT_PASSWORD}
+            GRAYLOG_HTTP_BIND_ADDRESS: 0.0.0.0:9000
+        entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
+        links:
+            - mongodb:mongo
+            - elasticsearch
+        restart: always
+        depends_on:
+            - mongodb
+            - elasticsearch
+        ports:
+            # Graylog web interface and REST API
+            - 80:9000
+            # Syslog TCP
+            - 1514:1514
+            # Syslog UDP
+            - 1514:1514/udp
+            # GELF TCP
+            - 12201:12201
+            # GELF UDP
+            - 12201:12201/udp
+        networks:
+            - graylog
+    mongodb:
+        image: mongo:5.0
+        container_name: mongo
+        restart: always
+        volumes:
+            - mongo_data:/data/db
+        networks:
+            - graylog
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.16.3
+        container_name: elasticsearch
+        volumes:
+            - es_data:/usr/share/elasticsearch/data
+        environment:
+            - http.host=0.0.0.0
+            - transport.host=localhost
+            - network.host=0.0.0.0
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        deploy:
+            resources:
+                limits:
+                    memory: 2g
+        restart: always
+        networks:
+            - graylog
+volumes:
+    mongo_data:
+        driver: local
+    es_data:
+        driver: local
+    graylog_data:
+        driver: local
+networks:
+    graylog:
+        driver: bridge
