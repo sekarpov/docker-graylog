@@ -13,15 +13,10 @@
     ignore_errors: yes
 
 -   name: Up certbot standalone Apache
-    shell: "docker run -d --name apache -v /var/www/html:/usr/local/apache2/htdocs/ -p 80:80 httpd:2.4"
+    shell: "docker run -d --name apache --privileged -v /var/www/html:/usr/local/apache2/htdocs/ -p 80:80 httpd:2.4"
     register: up_certbot
     when: port_check.failed == true
     ignore_errors: yes
-
--   name: Error response from daemon cgroups cgroup mountpoint does not exist
-    shell: "mkdir /sys/fs/cgroup/systemd && mount -t cgroup -o none,name=systemd cgroup /sys/fs/cgroup/systemd && docker rm -f apache"
-    with_items: "{{ letsencrypt_certs.results }}"
-    when: port_check.failed == true and up_certbot.failed == true
 
 -   name: Generate new certificate
     shell: "certbot certonly --noninteractive --agree-tos --email {{ certbot_email }} -d {{ item.item }}"

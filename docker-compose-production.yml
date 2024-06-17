@@ -1,7 +1,7 @@
 version: '3.8'
 services:
     graylog:
-        image: graylog/graylog:5.0
+        image: graylog/graylog:6.0
         container_name: graylog
         volumes:
             - graylog_data:/usr/share/graylog/data
@@ -34,7 +34,7 @@ services:
         networks:
             - graylog
     mongodb:
-        image: mongo:5.0
+        image: mongo:6.0
         container_name: mongo
         restart: always
         volumes:

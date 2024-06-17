@@ -3,10 +3,6 @@
     hosts: all
     remote_user: root
     tasks:
-        -   name: Update APT package cache
-            apt:
-                update_cache: yes
-
         -   name: Upgrade APT to the latest packages
             apt:
                 upgrade: dist
